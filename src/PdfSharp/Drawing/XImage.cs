@@ -234,7 +234,11 @@ namespace PdfSharp.Drawing
             Initialize();
         }
 
-        XImage(Stream stream)
+        /// <summary>
+        /// Create XImage from stream.
+        /// </summary>
+        /// <param name="stream">Image stream data.</param>
+        public XImage(Stream stream)
         {
             // Create a dummy unique path.
             _path = "*" + Guid.NewGuid().ToString("B");

@@ -50,12 +50,12 @@ namespace PdfSharp
         /// The PDF producer information string.
         /// TODO: Called Creator in MigraDoc???
         /// </summary>
-        public const string Producer = Title + " " + VersionMajor + "." + VersionMinor + "." + VersionBuild + Technology + " (" + Url + ")";
+        public const string Producer = "v1.5"; /////Title + " " + VersionMajor + "." + VersionMinor + "." + VersionBuild + Technology + " (" + Url + ")";
 
         /// <summary>
         /// The PDF producer information string including VersionPatch.
         /// </summary>
-        public const string Producer2 = Title + " " + VersionMajor + "." + VersionMinor + "." + VersionBuild + "." + VersionPatch + Technology + " (" + Url + ")";
+        public const string Producer2 = "v1.5"; /////Title + " " + VersionMajor + "." + VersionMinor + "." + VersionBuild + "." + VersionPatch + Technology + " (" + Url + ")";
 
         /// <summary>
         /// The full version number.
