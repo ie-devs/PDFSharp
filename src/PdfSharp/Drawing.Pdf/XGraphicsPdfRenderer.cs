@@ -514,18 +514,36 @@ namespace PdfSharp.Drawing.Pdf
                 bool isSymbolFont = descriptor.FontFace.cmap.symbol;
                 for (int idx = 0; idx < s.Length; idx++)
                 {
-                    char ch = s[idx];
-                    if (isSymbolFont)
-                    {
-                        // Remap ch for symbol fonts.
-                        ch = (char)(ch | (descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
-                    }
-                    int glyphID = descriptor.CharCodeToGlyphIndex(ch);
-                    sb.Append((char)glyphID);
+                  if (char.IsLowSurrogate(s, idx))
+                  {
+                    continue; // Ignore seccond char of Surrogate pair
+                  }
+
+                  char ch = s[idx];
+                  if (isSymbolFont)
+                  {
+                      // Remap ch for symbol fonts.
+                      ch = (char)(ch | (descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
+                  }
+
+                  if (char.IsHighSurrogate(ch))
+                  {
+                      var glyphIdUnsigned = descriptor.CharCodeToGlyphIndex(ch, s[idx + 1]);
+                      var glyphID = BitConverter.ToInt32(BitConverter.GetBytes(glyphIdUnsigned), 0);
+                      sb.Append(char.ConvertFromUtf32(glyphID));
+                  }
+                  else
+                  {
+                      var glyphID = descriptor.CharCodeToGlyphIndex(ch);
+                      sb.Append((char)glyphID);
+                  }
+                  ////int glyphID = descriptor.CharCodeToGlyphIndex(ch);
+                  ////sb.Append((char)glyphID);
                 }
+
                 s = sb.ToString();
 
-                byte[] bytes = PdfEncoders.RawUnicodeEncoding.GetBytes(s);
+                var bytes = PdfEncoders.RawUnicodeEncoding.GetBytes(s);
                 bytes = PdfEncoders.FormatStringLiteral(bytes, true, false, true, null);
                 text = PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
             }

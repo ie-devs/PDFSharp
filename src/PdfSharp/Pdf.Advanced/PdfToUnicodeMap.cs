@@ -77,9 +77,9 @@ namespace PdfSharp.Pdf.Advanced
               "/CMapName /Adobe-Identity-UCS def /CMapType 2 def\n";
             string suffix = "endcmap CMapName currentdict /CMap defineresource pop end end";
 
-            Dictionary<int, char> glyphIndexToCharacter = new Dictionary<int, char>();
+            Dictionary<int, string> glyphIndexToCharacter = new Dictionary<int, string>();
             int lowIndex = 65536, hiIndex = -1;
-            foreach (KeyValuePair<char, int> entry in _cmapInfo.CharacterToGlyphIndex)
+            foreach (KeyValuePair<string, uint> entry in _cmapInfo.CharacterToGlyphIndex)
             {
                 int index = (int)entry.Value;
                 lowIndex = Math.Min(lowIndex, index);
@@ -102,8 +102,8 @@ namespace PdfSharp.Pdf.Advanced
 
             // Sorting seems not necessary. The limit is 100 entries, we will see.
             wrt.WriteLine(String.Format("{0} beginbfrange", glyphIndexToCharacter.Count));
-            foreach (KeyValuePair<int, char> entry in glyphIndexToCharacter)
-                wrt.WriteLine(String.Format("<{0:X4}><{0:X4}><{1:X4}>", entry.Key, (int)entry.Value));
+            foreach (KeyValuePair<int, string> entry in glyphIndexToCharacter)
+                wrt.WriteLine(String.Format("<{0:X4}><{0:X4}><{1:X4}>", entry.Key, entry.Value));
             wrt.WriteLine("endbfrange");
 
             wrt.Write(suffix);

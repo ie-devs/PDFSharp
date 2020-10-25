@@ -58,17 +58,42 @@ namespace PdfSharp.Fonts
                 int length = text.Length;
                 for (int idx = 0; idx < length; idx++)
                 {
-                    char ch = text[idx];
-                    if (!CharacterToGlyphIndex.ContainsKey(ch))
+                    if (char.IsLowSurrogate(text, idx))
                     {
-                        char ch2 = ch;
+                      continue; // Ignore the seccond char of a surrogate pair
+                    }
+
+                    char ch = text[idx];
+
+                    var chString = string.Empty + ch;
+                    if (char.IsHighSurrogate(ch))
+                    {
+                      char chLow = text[idx + 1];
+                      chString += chLow;
+                    }
+
+                    if (!CharacterToGlyphIndex.ContainsKey(chString))
+                    {
+                        var strArray = chString.ToCharArray();
+                        char ch2 = strArray[0];
                         if (symbol)
                         {
                             // Remap ch for symbol fonts.
-                            ch2 = (char)(ch | (_descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
+                            ch2 = (char)(strArray[0] | (_descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
                         }
-                        int glyphIndex = _descriptor.CharCodeToGlyphIndex(ch2);
-                        CharacterToGlyphIndex.Add(ch, glyphIndex);
+
+                        uint glyphIndex;
+
+                        if (char.IsHighSurrogate(ch))
+                        {
+                          glyphIndex = _descriptor.CharCodeToGlyphIndex(ch, text[idx + 1]);
+                        }
+                        else
+                        { 
+                          glyphIndex = _descriptor.CharCodeToGlyphIndex(ch2);
+                        }
+
+                        CharacterToGlyphIndex.Add(chString, glyphIndex);
                         GlyphIndices[glyphIndex] = null;
                         MinChar = (char)Math.Min(MinChar, ch);
                         MaxChar = (char)Math.Max(MaxChar, ch);
@@ -87,7 +112,7 @@ namespace PdfSharp.Fonts
                 int length = glyphIndices.Length;
                 for (int idx = 0; idx < length; idx++)
                 {
-                    int glyphIndex = glyphIndices[idx];
+                    var glyphIndex = glyphIndices[idx];
                     GlyphIndices[glyphIndex] = null;
                 }
             }
@@ -109,25 +134,25 @@ namespace PdfSharp.Fonts
             AddChars(text);
         }
 
-        internal bool Contains(char ch)
-        {
-            return CharacterToGlyphIndex.ContainsKey(ch);
-        }
+        ////internal bool Contains(char ch)
+        ////{
+        ////    return CharacterToGlyphIndex.ContainsKey(ch);
+        ////}
 
-        public char[] Chars
-        {
-            get
-            {
-                char[] chars = new char[CharacterToGlyphIndex.Count];
-                CharacterToGlyphIndex.Keys.CopyTo(chars, 0);
-                Array.Sort(chars);
-                return chars;
-            }
-        }
+        ////public char[] Chars
+        ////{
+        ////    get
+        ////    {
+        ////        char[] chars = new char[CharacterToGlyphIndex.Count];
+        ////        CharacterToGlyphIndex.Keys.CopyTo(chars, 0);
+        ////        Array.Sort(chars);
+        ////        return chars;
+        ////    }
+        ////}
 
-        public int[] GetGlyphIndices()
+        public uint[] GetGlyphIndices()
         {
-            int[] indices = new int[GlyphIndices.Count];
+            uint[] indices = new uint[GlyphIndices.Count];
             GlyphIndices.Keys.CopyTo(indices, 0);
             Array.Sort(indices);
             return indices;
@@ -135,7 +160,7 @@ namespace PdfSharp.Fonts
 
         public char MinChar = char.MaxValue;
         public char MaxChar = char.MinValue;
-        public Dictionary<char, int> CharacterToGlyphIndex = new Dictionary<char, int>();
-        public Dictionary<int, object> GlyphIndices = new Dictionary<int, object>();
+        public Dictionary<string, uint> CharacterToGlyphIndex = new Dictionary<string, uint>();
+        public Dictionary<uint, object> GlyphIndices = new Dictionary<uint, object>();
     }
 }
